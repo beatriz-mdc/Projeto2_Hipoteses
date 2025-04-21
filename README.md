@@ -1,12 +1,17 @@
 # projeto-2_hipoteses
 O projeto tem como objetivo testar hipóteses levantadas por uma plataforma de streaming de música a partir da utilização de ferramentas como BigQuery e Power BI.
+
 O projeto foi desenvolvido em dupla.
+
 Ferramentas e Tecnologias utilizadas:
 > Google BigQuery;
 > Linguagem Python;
 > Power BI.
+
 Os dados foram disponibilizados pela empresa em pasta zipada com 3 planilhas CSV nomeadas “track_in_competition”, “track_in_spotify” e “track_technical_info”. Esses arquivos traziam informações de desempenho de músicas dentro do spotify, bem como em plataformas concorrentes e também informações técnicas sobre cada faixa. 
+
 Foi criado um projeto dentro da ferramenta BigQuery e, em seguida, um dataset onde foram feitos os uploads das tabelas extraídas da pasta zipada.
+
 Após uma breve avaliação inicial, foi decidido realizar algumas verificações sobre as tabelas a fim de localizar dados fora do padrão que pudessem impactar no processo de análise. Primeiro, foram procurados valores nulos. Para localizar esses valores foi utilizada a seguinte query em cada uma das tabelas:
 
 SELECT 
