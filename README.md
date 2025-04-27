@@ -14,7 +14,7 @@ Os dados foram disponibilizados pela empresa em pasta zipada com 3 planilhas CSV
 Foi criado um projeto dentro da ferramenta BigQuery e, em seguida, um dataset onde foram feitos os uploads das tabelas extraídas da pasta zipada.
 Após uma breve avaliação inicial, foi decidido realizar algumas verificações sobre as tabelas a fim de localizar dados fora do padrão que pudessem impactar no processo de análise. Primeiro, foram procurados valores nulos. Para localizar esses valores foi utilizada a seguinte query em cada uma das tabelas:
 
-> SELECT 
+SELECT 
 *
 FROM `projeto.dataset.tabela`
 WHERE coluna IS NULL;
@@ -39,9 +39,17 @@ mode,
 `speechiness_%`
 FROM `projeto.dataset.tabela`;
 
+Em seguida, foram procurados valores duplicados. Esses valores duplicados foram encontrados na tabela “track_in_spotify” com a seguinte query:
 
+SELECT 
+track_name,
+artists_name,
+COUNT (*) AS Duplicatas
+FROM `projeto.dataset.tabela`
+GROUP BY track_name, artists_name
+HAVING COUNT (*) >1
 
-
+Foram encontradas 4 músicas com duplicatas. A partir de uma análise das outras variáveis, foi verificado uma padrão em 3 músicas, onde essas não apresentavam a informação de chart. Com isso, foi decidido excluir essas canções com chart zero.   
 
 
 
