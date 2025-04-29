@@ -11,7 +11,11 @@ As ferramentas e tecnologias utilizadas foram:
 
 # Processamento e análises:
 Os dados foram disponibilizados pela empresa em pasta zipada com 3 planilhas CSV nomeadas “track_in_competition”, “track_in_spotify” e “track_technical_info”. Esses arquivos traziam informações de desempenho de músicas dentro do spotify, bem como em plataformas concorrentes e também informações técnicas sobre cada faixa. 
-Foi criado um projeto dentro da ferramenta BigQuery e, em seguida, um dataset onde foram feitos os uploads das tabelas extraídas da pasta zipada.
+Foi criado um projeto dentro da ferramenta BigQuery nomeada "projeto 2" e, em seguida, um dataset nomeado "música_streaming" onde foram feitos os uploads das tabelas extraídas da pasta zipada.
+
+*Identificar e tratar valores nulos*
+
+
 Após uma breve avaliação inicial, foi decidido realizar algumas verificações sobre as tabelas a fim de localizar dados fora do padrão que pudessem impactar no processo de análise. Primeiro, foram procurados valores nulos. Para localizar esses valores foi utilizada a seguinte query em cada uma das tabelas:
 
 SELECT 
