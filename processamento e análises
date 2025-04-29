@@ -8,6 +8,7 @@ Foi criado um projeto dentro da ferramenta BigQuery nomeada "projeto 2" e, em se
 *Identificar e tratar valores nulos*
 Para localizar valores nulos foi utilizada a seguinte query em cada uma das tabelas:
 
+```sql
 SELECT 
 * 
 FROM projeto.dataset.tabela 
@@ -15,6 +16,7 @@ WHERE coluna IS NULL;
 
 A partir dessa query foram localizados valores nulos nas tabelas “track_in_competition” e “track_technical_info”. Na tabela “track_in_competition” os dados nulos estavam na coluna "in_shazam_charts". Essa coluna sinaliza a posição que a música está dentro do chart do shazam. Dessa forma, nossa tratativa foi atribuir o número 0 a esses valores, uma vez que não constam em nenhuma posição do chart. Na tabela “track_technical_info” os dados nulos estavam na coluna "key". Essa coluna informa qual a nota musical de cada música. Para tratar esses valores nulos, verificamos qual a nota musical que mais aparecia nas demais músicas que continham essa informação na tabela. O resultado foi a nota "C#" como maior ocorrência na tabela. Com isso, utilizamos "C#" para substituir os valores nulos dessa coluna. A query utilizada foi a seguinte:
 
+```sql
 CREATE OR REPLACE TABLE `projeto-2-456519.musica_streaming.tracks_concorrentes` AS
 SELECT
 track_id,
@@ -33,6 +35,7 @@ FROM `projeto-2-456519.musica_streaming.tracks_concorrentes`;
 *Identificar e tratar valores duplicados*
 Esses valores duplicados foram encontrados na tabela “track_in_spotify” com a seguinte query:
 
+```sql
 SELECT 
 track_name,
 artists_name,
@@ -42,7 +45,7 @@ COUNT (*) AS Duplicatas
  HAVING COUNT (*) >1
 
 Foram encontradas 4 músicas com duplicatas. A partir de uma análise das outras variáveis, foi verificado um padrão em 3 músicas, onde essas não apresentavam a informação de chart. Com isso, foi decidido excluir essas canções com chart zero.
-
+Dentre as duplicatas encontradas, apenas 1 não apresentava esse comportamento.
 
 
 
