@@ -1,6 +1,6 @@
 # Etapas do projeto
 
-1. Processamento e preparação da base de dados
+*1. Processamento e preparação da base de dados*
 Os dados foram disponibilizados pela Laboratoria em pasta zipada com 3 planilhas CSV nomeadas “track_in_competition”, “track_in_spotify” e “track_technical_info”. 
 Esses arquivos contém informações de desempenho de músicas dentro do spotify, bem como em plataformas concorrentes e também informações técnicas sobre cada faixa. 
 Foi criado um projeto dentro da ferramenta BigQuery nomeada "projeto 2" e, em seguida, um dataset nomeado "musica_streaming" onde foram feitos os uploads das tabelas extraídas da pasta zipada.
@@ -48,7 +48,155 @@ COUNT (*) AS Duplicatas
 ```
 
 Foram encontradas 4 músicas com duplicatas. A partir de uma análise das outras variáveis, foi verificado um padrão em 3 músicas, onde essas não apresentavam a informação de chart. Com isso, foi decidido excluir essas canções com chart zero.
-Dentre as duplicatas encontradas, apenas 1 não apresentava esse comportamento.
+Dentre as músicas encontradas, apenas 1 apresentava chart zerado para ambas as duplicatas. Dessa forma, foi decidido excluir a que tinha menor número de streams.
+A query utilizada para exclusão:
+
+```sql
+DELETE FROM `projeto-2-456519.musica_streaming.tracks_spotify` 
+WHERE track_id IN ('8173823', '3814670', '7173596', '1119309');
+```
+
+*Identificar e tratar dados fora do escopo de análise*
+Todas as variáveis das tabelas foram mantidas nessa etapa a fim de evitar possíveis retrabalhos que pudessem afetar a análise futura.
+
+*Identificar e tratar dados discrepantes em variáveis ​​categóricas*
+Nesta etapa foram encontrados dados discrepantes em caracteres especiais no nome de artistas e de músicas.
+Para correção desses dados foi utilizada a seguinte query:
+
+```sql
+SELECT  
+  * EXCEPT (track_name, artists_name),
+  REGEXP_REPLACE(track_name, r'[^a-zA-Z0-9À-ÿ (),\-\'"&]', '') AS track_corrigida,
+  REGEXP_REPLACE(artists_name, r'[^a-zA-Z0-9À-ÿ (),\-\'"&]', '') AS artista_corrigida
+FROM `projeto-2-456519.musica_streaming.tracks_spotify`;
+```
+
+Após a correção foram identicados 2 músicas com o campo "track_corrigida" vazio. Após análise, foi decidido manter as músicas na base, pois não teria impacto negativo na análise, uma vez que elas possuem os demais dados completos.
+
+*Identificar e tratar dados discrepantes em variáveis ​​numéricas*
+Foram calculados o valor máximo, mínimo e média para cada variável numérica.
+Abaixo exemplo da query utilizada na tabela "tracks_sportify"
+
+```sql
+SELECT  
+MAX(coluna) as maximo,
+MIN(coluna) as minimo,
+AVG (coluna) as media
+FROM `projeto-2-456519.musica_streaming.tracks_spotify`;
+```
+
+A query acima foi aplicada a todas variáveis númericas de cada tabela.
+Com ela identificamos a coluna "streams" classficada como STRING e uma variável fora do padrão dentro da mesma coluna.
+
+*Verificar e alterar o tipo de dados*
+A coluna "streams" da tabela "tracks_spotify" foi corrigida de STRING para INTEGER, uma vez que se trata de uma variável numérica.
+Abaixo a query utilizada:
+
+```sql
+SELECT 
+*, 
+SAFE_CAST(streams AS INT64) AS streams_corrigido
+FROM `projeto-2-456519.musica_streaming.tracks_spotify`;
+```
+
+Para a variável fora do padrão da coluna "streams" decidimos manter a música e tornar o campo nulo.
+Para substituir o campo nulo, analisamos as músicas lançadas no mesmo ano e identificamos apenas 1. Com essa música, calculamos a média de número de streams por playlists.
+Pegamos esse valor e multiplicamos pelo total de playlists que a música com o campo nulo tinha e assim substituímos o campo nulo com esse valor.
+Abaixo a query utilizada:
+
+```sql
+SELECT  
+* EXCEPT (streams_corrigido),
+CASE WHEN streams_corrigido IS NULL THEN 394968158
+ELSE streams_corrigido
+END AS streams_limpo
+FROM `projeto-2-456519.musica_streaming.tracks_spotify`;
+```
+
+*Criar novas variáveis*
+Nesta etapa foram criadas as variáveis "data de lançamento", "total de playlists" e "charts concorrentes".
+Abaixo as respectivas queries:
+
+```sql
+SELECT 
+*,
+DATE(CONCAT(released_year, "-", released_month, "-", released_day)) AS data_lancamento
+FROM `projeto-2-456519.musica_streaming.tracks_spotify`;
+```
+
+```sql
+SELECT 
+*,
+in_apple_playlists + in_deezer_playlists + in_spotify_playlists as total_playlists
+FROM `projeto-2-456519.musica_streaming.tabelas_unificadas`;
+```
+
+```sql
+SELECT
+*,
+ROUND((in_apple_charts + in_deezer_charts + in_shazam_charts)/3) as charts_concorrentes
+FROM `projeto-2-456519.musica_streaming.tabelas_unificadas`
+```
+
+*Unir tabelas*
+Após a limpeza de dados e criação de novas variáveis, unimos as 3 tabelas na query abaixo:
+
+```sql
+CREATE OR REPLACE TABLE `projeto-2-456519.musica_streaming.tabelas_unificadas` AS
+SELECT
+  a.*,
+  b.in_apple_charts,
+  b.in_apple_playlists,
+  b.in_deezer_charts,
+  b.in_deezer_playlists,
+  b.in_shazam_charts,
+  c.`acousticness_%`,
+  c.bpm,
+  c.`danceability_%`,
+  c.`energy_%`,
+  c.`instrumentalness_%`,
+  c.key,
+  c.`liveness_%`,
+  c.mode,
+  c.`speechiness_%`,
+  c.`valence_%`
+FROM `projeto-2-456519.musica_streaming.tracks_spotify` a
+LEFT JOIN `projeto-2-456519.musica_streaming.tracks_concorrentes` b ON a.track_id = b.track_id
+LEFT JOIN `projeto-2-456519.musica_streaming.tracks_info` c ON a.track_id = c.track_id;
+```
+
+*Construir tabelas auxiliares*
+Foi criada uma tabela auxiliar com WITH para unir a quantidade de músicas e total de streams para cada artista.
+
+```sql
+CREATE OR REPLACE TABLE `projeto-2-456519.musica_streaming.artistas_streams_musicas` AS
+WITH streams_artistas AS (
+  SELECT 
+    artista_corrigida,
+    SUM(streams_limpo) AS total_streams
+  FROM `projeto-2-456519.musica_streaming.tabelas_unificadas`
+  GROUP BY artista_corrigida
+),
+
+musicas_unicas AS (
+  SELECT 
+    artista_corrigida,
+    COUNT(*) AS quantidade_musica
+  FROM `projeto-2-456519.musica_streaming.tabelas_unificadas`
+  GROUP BY artista_corrigida
+)
+
+SELECT 
+  a.artista_corrigida,
+  s.total_streams,
+  m.quantidade_musica
+FROM `projeto-2-456519.musica_streaming.tabelas_unificadas` AS a
+JOIN streams_artistas AS s ON a.artista_corrigida = s.artista_corrigida
+JOIN musicas_unicas AS m ON a.artista_corrigida = m.artista_corrigida
+GROUP BY a.artista_corrigida, s.total_streams, m.quantidade_musica;
+```
+*2. Análise Exploratória*
+
 
 
 
