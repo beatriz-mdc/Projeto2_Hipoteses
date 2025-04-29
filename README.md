@@ -1,4 +1,4 @@
-# Projeto 2 - teste de hipoteses
+# Projeto 2 - Teste de Hipóteses
 
 # Objetivo:
 O projeto tem como objetivo testar hipóteses levantadas por uma plataforma de streaming de música a partir da utilização de ferramentas como BigQuery e Power BI.
