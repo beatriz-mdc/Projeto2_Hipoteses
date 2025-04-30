@@ -368,7 +368,6 @@ Não necessariamente.
 No gráfico vemos uma correlação negativa entre as variáveis, indicando que o número de streams diminui conforme as variáveis aumentam.
 Vimos até aqui que diversos fatores podem influenciar no sucesso de streams, as características da música não parecem ser uma delas.
 
-![image](https://github.com/user-attachments/assets/168206b1-b8d1-48d2-90d5-84950baa5621)
 
 
 
