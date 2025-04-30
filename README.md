@@ -1,59 +1,69 @@
-# Projeto 2 - Teste de Hipóteses
+# Projeto Hipoteses
 
-# Objetivo:
-O projeto tem como objetivo testar hipóteses levantadas por uma plataforma de streaming de música a partir da utilização de ferramentas como BigQuery e Power BI.
+O projeto é parte do curso de Análise de Dados desenvolvido pela Laboratoria Brasil.
+
+Toda a documentação realizada, bem como os materiais produzidos podem ser consultados nos arquivos anexados ao projeto.
+
+# Sobre o projeto
+
+Num mundo onde a indústria musical é extremamente competitiva e em constante evolução, a capacidade de tomar decisões baseadas em dados tornou-se um ativo inestimável.
+
+Neste contexto, uma gravadora enfrenta o emocionante desafio de lançar um novo artista no cenário musical global. Felizmente, ela tem uma ferramenta poderosa em seu arsenal: um extenso conjunto de dados do Spotify com informações sobre as músicas mais ouvidas em 2023.
+
+A gravadora levantou uma série de hipóteses sobre o que faz uma música ser mais ouvida. Essas hipóteses incluem:
+
+- Músicas com BPM (Batidas Por Minuto) mais altos fazem mais sucesso em termos de número de streams no Spotify.
+
+- As músicas mais populares no ranking do Spotify também possuem um comportamento semelhante em outras plataformas, como a Deezer.
+
+- A presença de uma música em um maior número de playlists está correlacionada com um maior número de streams.
+
+- Artistas com um maior número de músicas no Spotify têm mais streams.
+
+- As características da música influenciam o sucesso em termos de número de streams no Spotify.
+
+# Objetivo
+
+Validar (refutar ou confirmar) essas hipóteses através da análise de dados e fornecer recomendações estratégicas com base nas descobertas. O objetivo principal desta análise é que a gravadora e o novo artista possam tomar decisões informadas que aumentem suas chances de alcançar o “sucesso”.
 
 # Ferramentas e Tecnologias:
 As ferramentas e tecnologias utilizadas foram:
-> Google BigQuery;
-> Linguagem Python;
-> Power BI.
+- Google BigQuery;
+- Linguagem Python;
+- Power BI.
 
 # Processamento e análises:
-Os dados foram disponibilizados pela empresa em pasta zipada com 3 planilhas CSV nomeadas “track_in_competition”, “track_in_spotify” e “track_technical_info”. Esses arquivos traziam informações de desempenho de músicas dentro do spotify, bem como em plataformas concorrentes e também informações técnicas sobre cada faixa. 
-Foi criado um projeto dentro da ferramenta BigQuery nomeada "projeto 2" e, em seguida, um dataset nomeado "música_streaming" onde foram feitos os uploads das tabelas extraídas da pasta zipada.
 
-*Identificar e tratar valores nulos*
+Toda a documentação relacionada a exploração dos dados pode ser encontrada no tópico "processamento_e_analise" disponível nos arquivos do projeto.
 
+# Resultados:
 
-Após uma breve avaliação inicial, foi decidido realizar algumas verificações sobre as tabelas a fim de localizar dados fora do padrão que pudessem impactar no processo de análise. Primeiro, foram procurados valores nulos. Para localizar esses valores foi utilizada a seguinte query em cada uma das tabelas:
+Abaixo o resultado encontrado para cada hipótese:
 
-SELECT 
-*
-FROM `projeto.dataset.tabela`
-WHERE coluna IS NULL;
+> Músicas com BPM (Batidas Por Minuto) mais altos fazem mais sucesso em termos de número de streams no Spotify.
 
-A partir dessa query foram localizados valores nulos nas tabelas “track_in_competition” e “track_technical_info”.
-Na tabela “track_in_competition” os dados nulos estavam na coluna "in_shazam_charts". Essa coluna sinaliza a posição que a música está dentro do chart do shazam. Dessa forma, nossa tratativa foi atribuir o número 0 a esses valores, uma vez que não constam em nenhuma posição do chart.
-Na tabela “track_technical_info” os dados nulos estavam na coluna "key". Essa coluna informa qual a nota musical de cada música. Para tratar esses valores nulos, verificamos qual a nota musical que mais aparecia nas demais músicas que continham essa informação na tabela. O resultado foi a nota "C#" como maior ocorrência na tabela. Com isso, utilizamos "C#" para substituir os valores nulos dessa coluna.
-A query utilizada foi a seguinte:
+Hipótese falsa.
 
-CREATE OR REPLACE TABLE `projeto.dataset.tabela` AS
-SELECT
-track_id,
-bpm,
-COALESCE(key, 'C#') AS key,
-mode,
-`danceability_%`,
-`valence_%`,
-`energy_%`,
-`acousticness_%`,
-`instrumentalness_%`,
-`liveness_%`,
-`speechiness_%`
-FROM `projeto.dataset.tabela`;
+> As músicas mais populares no ranking do Spotify também possuem um comportamento semelhante em outras plataformas, como a Deezer.
 
-Em seguida, foram procurados valores duplicados. Esses valores duplicados foram encontrados na tabela “track_in_spotify” com a seguinte query:
+Hipótese verdadeira.
 
-SELECT 
-track_name,
-artists_name,
-COUNT (*) AS Duplicatas
-FROM `projeto.dataset.tabela`
-GROUP BY track_name, artists_name
-HAVING COUNT (*) >1
+> A presença de uma música em um maior número de playlists está correlacionada com um maior número de streams.
 
-Foram encontradas 4 músicas com duplicatas. A partir de uma análise das outras variáveis, foi verificado uma padrão em 3 músicas, onde essas não apresentavam a informação de chart. Com isso, foi decidido excluir essas canções com chart zero.   
+Hipótese verdadeira.
 
+> Artistas com um maior número de músicas no Spotify têm mais streams.
 
+Hipótese verdadeira.
 
+> As características da música influenciam o sucesso em termos de número de streams no Spotify.
+
+Hipótese falsa.
+
+# Conclusões:
+
+- Investir em uma boa curadoria de playlist para ampliar o alcance do artista;
+- Apostar em feats com artistas populares dentro das plataformas;
+- Manter um catálogo de músicas amplo e atualizado visando o aumento do share de participação no total de streams;
+- Valorizar uma boa posição dentro de um chart, visto que esse comportamento positivo se reflete em todas as plataformas, o que aumenta a visibilidade para o artista;
+- Testar novas hipóteses relacionadas a características técnicas da música para entender sua relação com o consumo atual dos streams.
