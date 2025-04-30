@@ -195,15 +195,173 @@ JOIN streams_artistas AS s ON a.artista_corrigida = s.artista_corrigida
 JOIN musicas_unicas AS m ON a.artista_corrigida = m.artista_corrigida
 GROUP BY a.artista_corrigida, s.total_streams, m.quantidade_musica;
 ```
+
 *2. Análise Exploratória*
+A partir desta etapa começamos a visualizar e explorar os dados em profundidade usando Power BI.
 
+*Agrupamento e visualizar variáveis ​​categóricas*
+Relacionamos número de músicas por artista e número de músicas por ano de lançamento através de tabela matricial e gráfico de barras.
 
+[inserir print tabela e gráfico]
 
+*Aplicar medidas de tendência central*
+Aplicadas de medidas como média, mediana e desvio padrão para as variáveis de streams e total de playlists.
 
+[inserir print tabela e gráfico]
 
+A média é maior que a mediana, o que indica que alguns valores muito altos (outliers) estão puxando a média para cima.
 
+*Ver distribuição*
+Os valores de média e mediana encontrados no tópico anterior indicam uma distribuição dos dados assimétrica à direita.
+É possível visualizar essa distribuição através dos histogramas abaixo criados a partir de python:
 
+[inserir print histogramas]
 
+import matplotlib.pyplot as plt
+import pandas as pd
+# Obtenha os dados do Power BI - você só preciso alterar essas informações de todo o code
+data = dataset[['YOUR VARIABLE']]
+# Crie o histogram
+plt.hist(data, bins=10, color='blue', alpha=0.7)
+plt.xlabel('Value')
+plt.ylabel('Frequency')
+plt .title('Histogram')
+# Mostre o histogram
+plt.show()
 
+*Aplicar medidas de dispersão*
+Os valores de desvio padrão que encontramos são maiores que a média, o que indica que os dados das variáveis analisadas estão bem espalhados, há muita variação nos dados.
 
+*Visualizar o comportamento dos dados ao longo do tempo*
+Aqui visualizamos o comportamento do número de streams e do número de músicas ao longo dos anos.
 
+[inserir print do gráfico]
+
+*Calcular quartis, decis ou percentis*
+Calculamos os quartis para identificar onde está a maior parte dos dados, se estão mais próximos do início, do meio ou do fim da distribuição.
+Na query abaixo calculamos os quartis de cada variável e criamos suas respectivas classificações:
+
+```sql
+WITH quartis AS (
+  SELECT
+    track_id,
+    NTILE(4) OVER (ORDER BY total_playlists) AS playlist_quartil,
+    NTILE(4) OVER (ORDER BY bpm) AS bpm_quartil,
+    NTILE(4) OVER (ORDER BY `danceability_%`) AS danceability_quartil,
+    NTILE(4) OVER (ORDER BY `valence_%`) AS valence_quartil,
+    NTILE(4) OVER (ORDER BY `energy_%`) AS energy_quartil,
+    NTILE(4) OVER (ORDER BY `acousticness_%`) AS acousticness_quartil,
+    NTILE(4) OVER (ORDER BY `instrumentalness_%`) AS instrumentalness_quartil,
+    NTILE(4) OVER (ORDER BY `liveness_%`) AS liveness_quartil,
+    NTILE(4) OVER (ORDER BY `speechiness_%`) AS speechiness_quartil
+  FROM
+    `projeto-2-456519.musica_streaming.tabelas_unificadas`
+)
+SELECT
+  a.*,
+  q.playlist_quartil,
+  IF(q.playlist_quartil = 4, "Alto", IF(q.playlist_quartil = 3, "Médio", IF(q.playlist_quartil = 2, "Médio", "Baixo"))) AS playlist_categorizada,
+  q.bpm_quartil,
+  IF(q.bpm_quartil = 4, "Alto", IF(q.bpm_quartil = 3, "Médio", IF(q.bpm_quartil = 2, "Médio", "Baixo"))) AS bpm_categorizada,
+  q.danceability_quartil,
+  IF(q.danceability_quartil = 4, "Alto", IF(q.danceability_quartil = 3, "Médio", IF(q.danceability_quartil = 2, "Médio", "Baixo"))) AS danceability_categorizada,
+  q.valence_quartil,
+  IF(q.valence_quartil = 4, "Alto", IF(q.valence_quartil = 3, "Médio", IF(q.valence_quartil = 2, "Médio", "Baixo"))) AS valence_categorizada,
+  q.energy_quartil,
+  IF(q.energy_quartil = 4, "Alto", IF(q.energy_quartil = 3, "Médio", IF(q.energy_quartil = 2, "Médio", "Baixo"))) AS energy_categorizada,
+  q.acousticness_quartil,
+  IF(q.acousticness_quartil = 4, "Alto", IF(q.acousticness_quartil = 3, "Médio", IF(q.acousticness_quartil = 2, "Médio", "Baixo"))) AS acousticness_categorizada,
+  q.instrumentalness_quartil,
+  IF(q.instrumentalness_quartil = 4, "Alto", IF(q.instrumentalness_quartil = 3, "Médio", IF(q.instrumentalness_quartil = 2, "Médio", "Baixo"))) AS instrumentalness_categorizada,
+  q.liveness_quartil,
+  IF(q.liveness_quartil = 4, "Alto", IF(q.liveness_quartil = 3, "Médio", IF(q.liveness_quartil = 2, "Médio", "Baixo"))) AS liveness_categorizada,
+  q.speechiness_quartil,
+  IF(q.speechiness_quartil = 4, "Alto", IF(q.speechiness_quartil = 3, "Médio", IF(q.speechiness_quartil = 2, "Médio", "Baixo"))) AS speechiness_categorizada
+FROM
+  `projeto-2-456519.musica_streaming.tabelas_unificadas` a
+JOIN
+  quartis q ON a.track_id = q.track_id
+```
+
+*Calcular correlação entre variáveis*
+As queries abaixo correspondem às correlações feitas para testar as hipóteses do projeto.
+Correlação próxima a 1 indica que à medida que uma variável aumenta, a outra variável também aumenta.
+Correlação próxima a -1 indica que à medida que uma variável aumenta, a outra variável diminui.
+Correlação próxima a 0 indica uma ausência de correlação linear. Não há relação linear entre as duas variáveis.
+
+```sql
+SELECT  
+CORR (bpm, streams_limpo) as correlacao_bpm,
+CORR (in_spotify_charts, charts_concorrentes) as correlacao_charts,
+CORR (total_playlists, streams_limpo) as correlacao_playlists
+FROM `projeto-2-456519.musica_streaming.tabelas_unificadas`
+```
+
+[inserir print do resultado]
+
+```sql
+SELECT  
+CORR (Valor, streams_limpo) as correlacao
+FROM `projeto-2-456519.musica_streaming.tabela_auxiliar`;
+```
+
+[inserir print do resultado]
+
+```sql
+SELECT    
+CORR (quantidade_musica, total_streams) as correlacao_musicas
+FROM `projeto-2-456519.musica_streaming.artistas_streams_musicas`;
+```
+
+[inserir print do resultado]
+
+*3. Análise*
+Após a exploração de dados é possível realizar os testes das hipóteses levantadas no projeto.
+
+*Aplicar segmentação*
+Foi criada uma tabela agrupando os dados entre as categorias criadas para cada característica da música em relação ao número médio de streams por categoria.
+
+[inserir print das tabelas]
+
+*Validar hipótese*
+Aqui validaremos ou não as hipóteses levantadas com gráficos de dispersão a partir das correlações calculadas.
+
+> Músicas com BPM (Batidas Por Minuto) mais altos fazem mais sucesso em termos de streams no Spotify.
+
+[inserir print do gráfico]
+
+A hipótese não existe.
+O gráfico aponta para uma ausência de correlação entre as músicas com BPM mais alto e o sucesso em termos de streams no Spotify.
+Essa falta de relação pode indicar que outros fatores, que não o BPM alto, influenciam na popularidade de streams de uma música.
+
+> As músicas mais populares no ranking do Spotify também possuem um comportamento semelhante em outras plataformas como Deezer.
+
+[inserir print do gráfico]
+
+A hipótese é verdadeira.
+O gráfico aponta para uma correlação positiva entre as músicas melhores rankeadas no Spotify em comparação às demais plataformas.
+Isso indica que uma música bem rankeada dentro dos charts do Spotify tem chances de apresentar o mesmo comportamento nos charts dos demais concorrentes.
+
+> A presença de uma música em um maior número de playlists é relacionada a um maior número de streams.
+
+[inserir print do gráfico]
+
+A hipótese é válida.
+O gráfico indica uma forte correlação positiva entre as variáveis avaliadas.
+O resultado mostra que a maior participação em playlists leva a um maior número de streams para a música, sendo assim importante um bom trabalho relacionado a curadoria de playlists.
+
+> Artistas com maior número de músicas no Spotify têm mais streams.
+
+[inserir print do gráfico]
+
+A hipótese é correta.
+Nos dados é possível observar que os artistas que possuem o maior número de músicas também possuem o maior somatório no número de streams.
+O dado indica que um artista com maior portfólio pode acumular sim um maior número de streams.
+
+> As características da música influenciam no sucesso em termos de streams no Spotify.
+
+[inserir print do gráfico]
+
+Não necessariamente.
+No gráfico vemos uma correlação negativa entre as variáveis, indicando que o número de streams diminui conforme as variáveis aumentam.
+Vimos até aqui que diversos fatores podem influenciar no sucesso de streams, as características da música não parecem ser uma delas.
