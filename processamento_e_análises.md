@@ -1,11 +1,13 @@
 # Etapas do projeto
 
-1. Processamento e preparação da base de dados
+***1. Processamento e preparação da base de dados***
+
 Os dados foram disponibilizados pela Laboratoria em pasta zipada com 3 planilhas CSV nomeadas “track_in_competition”, “track_in_spotify” e “track_technical_info”. 
 Esses arquivos contém informações de desempenho de músicas dentro do spotify, bem como em plataformas concorrentes e também informações técnicas sobre cada faixa. 
 Foi criado um projeto dentro da ferramenta BigQuery nomeada "projeto 2" e, em seguida, um dataset nomeado "musica_streaming" onde foram feitos os uploads das tabelas extraídas da pasta zipada.
 
 **Identificar e tratar valores nulos**
+
 Para localizar valores nulos foi utilizada a seguinte query em cada uma das tabelas:
 
 ```sql
