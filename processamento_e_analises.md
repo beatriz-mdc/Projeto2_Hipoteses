@@ -4,9 +4,10 @@
 
 Os dados foram disponibilizados pela Laboratoria em pasta zipada com 3 planilhas CSV nomeadas “track_in_competition”, “track_in_spotify” e “track_technical_info”. 
 Esses arquivos contém informações de desempenho de músicas dentro do spotify, bem como em plataformas concorrentes e também informações técnicas sobre cada faixa. 
+
 Foi criado um projeto dentro da ferramenta BigQuery nomeada "projeto 2" e, em seguida, um dataset nomeado "musica_streaming" onde foram feitos os uploads das tabelas extraídas da pasta zipada.
 
-**Identificar e tratar valores nulos**
+***Identificar e tratar valores nulos***
 
 Para localizar valores nulos foi utilizada a seguinte query em cada uma das tabelas:
 
@@ -36,7 +37,8 @@ mode,
 FROM `projeto-2-456519.musica_streaming.tracks_concorrentes`;
 ```
 
-*Identificar e tratar valores duplicados*
+***Identificar e tratar valores duplicados***
+
 Esses valores duplicados foram encontrados na tabela “track_in_spotify” com a seguinte query:
 
 ```sql
@@ -58,10 +60,12 @@ DELETE FROM `projeto-2-456519.musica_streaming.tracks_spotify`
 WHERE track_id IN ('8173823', '3814670', '7173596', '1119309');
 ```
 
-*Identificar e tratar dados fora do escopo de análise*
+***Identificar e tratar dados fora do escopo de análise***
+
 Todas as variáveis das tabelas foram mantidas nessa etapa a fim de evitar possíveis retrabalhos que pudessem afetar a análise futura.
 
-*Identificar e tratar dados discrepantes em variáveis ​​categóricas*
+***Identificar e tratar dados discrepantes em variáveis ​​categóricas***
+
 Nesta etapa foram encontrados dados discrepantes em caracteres especiais no nome de artistas e de músicas.
 Para correção desses dados foi utilizada a seguinte query:
 
@@ -73,9 +77,10 @@ SELECT
 FROM `projeto-2-456519.musica_streaming.tracks_spotify`;
 ```
 
-Após a correção foram identicados 2 músicas com o campo "track_corrigida" vazio. Após análise, foi decidido manter as músicas na base, pois não teria impacto negativo na análise, uma vez que elas possuem os demais dados completos.
+Após a correção foram identicados 2 músicas com o campo "track_corrigida" vazio. Após análise, foi decidido manter as músicas na base, pois não teria impacto negativo na análise, uma vez que elas possuiam os demais dados completos.
 
-*Identificar e tratar dados discrepantes em variáveis ​​numéricas*
+***Identificar e tratar dados discrepantes em variáveis ​​numéricas***
+
 Foram calculados o valor máximo, mínimo e média para cada variável numérica.
 Abaixo exemplo da query utilizada na tabela "tracks_sportify"
 
@@ -90,7 +95,8 @@ FROM `projeto-2-456519.musica_streaming.tracks_spotify`;
 A query acima foi aplicada a todas variáveis númericas de cada tabela.
 Com ela identificamos a coluna "streams" classficada como STRING e uma variável fora do padrão dentro da mesma coluna.
 
-*Verificar e alterar o tipo de dados*
+***Verificar e alterar o tipo de dados***
+
 A coluna "streams" da tabela "tracks_spotify" foi corrigida de STRING para INTEGER, uma vez que se trata de uma variável numérica.
 Abaixo a query utilizada:
 
@@ -115,7 +121,15 @@ END AS streams_limpo
 FROM `projeto-2-456519.musica_streaming.tracks_spotify`;
 ```
 
-*Criar novas variáveis*
+Ainda nessa etapa, identificamos um valor na coluna "track_id" como 00:00. Apesar de estar classificada corretamente como STRING, a música não apresentava nenhuma informação nas demais tabelas. Dessa forma, decidimos por excluí-la com a seguinte query:
+
+```sql
+DELETE FROM `projeto-2-456519.musica_streaming.tabelas_unificadas` 
+WHERE track_id IN ('00:00');
+```
+
+***Criar novas variáveis***
+
 Nesta etapa foram criadas as variáveis "data de lançamento", "total de playlists" e "charts concorrentes".
 Abaixo as respectivas queries:
 
@@ -140,7 +154,8 @@ ROUND((in_apple_charts + in_deezer_charts + in_shazam_charts)/3) as charts_conco
 FROM `projeto-2-456519.musica_streaming.tabelas_unificadas`
 ```
 
-*Unir tabelas*
+***Unir tabelas***
+
 Após a limpeza de dados e criação de novas variáveis, unimos as 3 tabelas na query abaixo:
 
 ```sql
@@ -167,7 +182,8 @@ LEFT JOIN `projeto-2-456519.musica_streaming.tracks_concorrentes` b ON a.track_i
 LEFT JOIN `projeto-2-456519.musica_streaming.tracks_info` c ON a.track_id = c.track_id;
 ```
 
-*Construir tabelas auxiliares*
+***Construir tabelas auxiliares***
+
 Foi criada uma tabela auxiliar com WITH para unir a quantidade de músicas e total de streams para cada artista.
 
 ```sql
@@ -198,30 +214,57 @@ JOIN musicas_unicas AS m ON a.artista_corrigida = m.artista_corrigida
 GROUP BY a.artista_corrigida, s.total_streams, m.quantidade_musica;
 ```
 
-*2. Análise Exploratória*
+Também foram criadas também para quantificar artistas com músicas solo e músicas em parceria.
+Abaixo as queries utilizadas:
+
+```sql
+CREATE TABLE `projeto-2-456519.musica_streaming.artistas_feat` AS
+SELECT 
+artista_corrigida,
+FROM `projeto-2-456519.musica_streaming.tabelas_unificadas`
+WHERE artist_count > 1
+GROUP BY artista_corrigida;
+```
+
+```sql
+CREATE TABLE `projeto-2-456519.musica_streaming.artistas_solo` AS
+SELECT 
+artista_corrigida,
+FROM `projeto-2-456519.musica_streaming.tabelas_unificadas`
+WHERE artist_count = 1
+GROUP BY artista_corrigida;
+```
+
+***2. Análise Exploratória***
+
 A partir desta etapa começamos a visualizar e explorar os dados em profundidade usando Power BI.
 
-*Agrupamento e visualizar variáveis ​​categóricas*
+***Agrupamento e visualização de variáveis ​​categóricas***
+
 Relacionamos número de músicas por artista e número de músicas por ano de lançamento através de tabela matricial e gráfico de barras.
 
-[inserir print tabela e gráfico]
+![image](https://github.com/user-attachments/assets/84cdf459-5b13-4b4b-a009-1614198f5b39)
+![image](https://github.com/user-attachments/assets/1e5bc47d-9e46-4014-a5d5-ce7e6a3cb833)
 
-*Aplicar medidas de tendência central*
-Aplicadas de medidas como média, mediana e desvio padrão para as variáveis de streams e total de playlists.
+***Aplicar medidas de tendência central***
 
-[inserir print tabela e gráfico]
+Foram aplicadas medidas como média, mediana e desvio padrão para as variáveis de streams e total de playlists.
+
+![image](https://github.com/user-attachments/assets/c55f1873-6d1a-43c1-b01b-1096f84e6c67)
 
 A média é maior que a mediana, o que indica que alguns valores muito altos (outliers) estão puxando a média para cima.
 
-*Ver distribuição*
+***Ver distribuição***
+
 Os valores de média e mediana encontrados no tópico anterior indicam uma distribuição dos dados assimétrica à direita.
 É possível visualizar essa distribuição através dos histogramas abaixo criados a partir de python:
 
-[inserir print histogramas]
+![image](https://github.com/user-attachments/assets/14a8cec2-cadd-4c54-8c8f-557c921ba92f)
 
+```python
 import matplotlib.pyplot as plt
 import pandas as pd
-# Obtenha os dados do Power BI - você só preciso alterar essas informações de todo o code
+# Obtenha os dados do Power BI
 data = dataset[['YOUR VARIABLE']]
 # Crie o histogram
 plt.hist(data, bins=10, color='blue', alpha=0.7)
@@ -230,17 +273,21 @@ plt.ylabel('Frequency')
 plt .title('Histogram')
 # Mostre o histogram
 plt.show()
+```
 
-*Aplicar medidas de dispersão*
+***Aplicar medidas de dispersão***
+
 Os valores de desvio padrão que encontramos são maiores que a média, o que indica que os dados das variáveis analisadas estão bem espalhados, há muita variação nos dados.
 
-*Visualizar o comportamento dos dados ao longo do tempo*
+***Visualizar o comportamento dos dados ao longo do tempo***
+
 Aqui visualizamos o comportamento do número de streams e do número de músicas ao longo dos anos.
 
-[inserir print do gráfico]
+![image](https://github.com/user-attachments/assets/e119cf68-af7d-4bc0-820e-1fbe13b7c3f5)
 
-*Calcular quartis, decis ou percentis*
-Calculamos os quartis para identificar onde está a maior parte dos dados, se estão mais próximos do início, do meio ou do fim da distribuição.
+**Calcular quartis, decis ou percentis***
+
+Calculamos os quartis para identificar onde a maior parte dos dados está concentrada, se estão mais próximos do início, do meio ou do fim da distribuição.
 Na query abaixo calculamos os quartis de cada variável e criamos suas respectivas classificações:
 
 ```sql
@@ -285,7 +332,8 @@ JOIN
   quartis q ON a.track_id = q.track_id
 ```
 
-*Calcular correlação entre variáveis*
+***Calcular correlação entre variáveis***
+
 As queries abaixo correspondem às correlações feitas para testar as hipóteses do projeto.
 Correlação próxima a 1 indica que à medida que uma variável aumenta, a outra variável também aumenta.
 Correlação próxima a -1 indica que à medida que uma variável aumenta, a outra variável diminui.
@@ -299,7 +347,7 @@ CORR (total_playlists, streams_limpo) as correlacao_playlists
 FROM `projeto-2-456519.musica_streaming.tabelas_unificadas`
 ```
 
-[inserir print do resultado]
+![image](https://github.com/user-attachments/assets/1d9cb2b8-6799-432d-ba44-4893b277fd30)
 
 ```sql
 SELECT  
@@ -307,7 +355,7 @@ CORR (Valor, streams_limpo) as correlacao
 FROM `projeto-2-456519.musica_streaming.tabela_auxiliar`;
 ```
 
-[inserir print do resultado]
+![image](https://github.com/user-attachments/assets/9ceb4cb4-d71e-41cd-840e-f9cfefcbb08b)
 
 ```sql
 SELECT    
@@ -315,22 +363,25 @@ CORR (quantidade_musica, total_streams) as correlacao_musicas
 FROM `projeto-2-456519.musica_streaming.artistas_streams_musicas`;
 ```
 
-[inserir print do resultado]
+![image](https://github.com/user-attachments/assets/d0cc6a41-d4bf-46db-8d10-1f4ee08f9fa9)
 
 *3. Análise*
-Após a exploração de dados é possível realizar os testes das hipóteses levantadas no projeto.
 
-*Aplicar segmentação*
-Foi criada uma tabela agrupando os dados entre as categorias criadas para cada característica da música em relação ao número médio de streams por categoria.
+Após a exploração de dados é possível testar as hipóteses levantadas no projeto.
 
-[inserir print das tabelas]
+***Aplicar segmentação***
 
-*Validar hipótese*
+Foi criada uma tabela com as categorias criadas para cada característica da música em relação ao número médio de streams.
+
+![image](https://github.com/user-attachments/assets/e4bef9fd-16ac-437a-93bc-2fb770df2ffb)
+
+***Validar hipótese***
+
 Aqui validaremos ou não as hipóteses levantadas com gráficos de dispersão a partir das correlações calculadas.
 
 > Músicas com BPM (Batidas Por Minuto) mais altos fazem mais sucesso em termos de streams no Spotify.
 
-[inserir print do gráfico]
+![image](https://github.com/user-attachments/assets/4247d953-bbb1-4ce7-9087-8fcba61a70b7)
 
 A hipótese não existe.
 O gráfico aponta para uma ausência de correlação entre as músicas com BPM mais alto e o sucesso em termos de streams no Spotify.
@@ -338,7 +389,7 @@ Essa falta de relação pode indicar que outros fatores, que não o BPM alto, in
 
 > As músicas mais populares no ranking do Spotify também possuem um comportamento semelhante em outras plataformas como Deezer.
 
-[inserir print do gráfico]
+![image](https://github.com/user-attachments/assets/e7b3fca4-886a-48be-bb10-a606ef7f5e06)
 
 A hipótese é verdadeira.
 O gráfico aponta para uma correlação positiva entre as músicas melhores rankeadas no Spotify em comparação às demais plataformas.
@@ -346,7 +397,7 @@ Isso indica que uma música bem rankeada dentro dos charts do Spotify tem chance
 
 > A presença de uma música em um maior número de playlists é relacionada a um maior número de streams.
 
-[inserir print do gráfico]
+![image](https://github.com/user-attachments/assets/1192b05f-b899-4c71-bc79-8f70425bc6f1)
 
 A hipótese é válida.
 O gráfico indica uma forte correlação positiva entre as variáveis avaliadas.
@@ -354,7 +405,7 @@ O resultado mostra que a maior participação em playlists leva a um maior núme
 
 > Artistas com maior número de músicas no Spotify têm mais streams.
 
-[inserir print do gráfico]
+![image](https://github.com/user-attachments/assets/70af5313-56dc-4977-a37a-857e9c13383d)
 
 A hipótese é correta.
 Nos dados é possível observar que os artistas que possuem o maior número de músicas também possuem o maior somatório no número de streams.
@@ -362,17 +413,8 @@ O dado indica que um artista com maior portfólio pode acumular sim um maior nú
 
 > As características da música influenciam no sucesso em termos de streams no Spotify.
 
-[inserir print do gráfico]
+![image](https://github.com/user-attachments/assets/c7fc2b3f-bc17-47c8-b4da-7c743247934e)
 
 Não necessariamente.
 No gráfico vemos uma correlação negativa entre as variáveis, indicando que o número de streams diminui conforme as variáveis aumentam.
 Vimos até aqui que diversos fatores podem influenciar no sucesso de streams, as características da música não parecem ser uma delas.
-
-
-
-
-
-
-
-
-
