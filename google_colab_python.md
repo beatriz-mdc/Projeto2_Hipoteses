@@ -1,1 +1,1 @@
-- [Google Colab - Regressão Linear](https://colab.research.google.com/drive/1DZWy7BIm7HQy5aalpebdGpOiZBrneKwV#scrollTo=QvL-IT_dHcl8)
+- [Google Colab - Regressão Linear](https://colab.research.google.com/drive/1DZWy7BIm7HQy5aalpebdGpOiZBrneKwV?usp=sharing)
