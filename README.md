@@ -34,7 +34,9 @@ As ferramentas e tecnologias utilizadas foram:
 
 # Processamento e análises:
 
-Toda a documentação relacionada a exploração dos dados pode ser encontrada no tópico "processamento_e_analise" disponível nos arquivos do projeto.
+Toda a documentação relacionada a exploração dos dados pode ser encontrada no link abaixo:
+
+- [Processamento e análise](https://github.com/beatriz-mdc/Projeto2_Hipoteses/blob/main/processamento_e_analises.md)
 
 # Resultados:
 
