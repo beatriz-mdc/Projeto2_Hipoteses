@@ -26,19 +26,19 @@ A gravadora levantou uma série de hipóteses sobre o que faz uma música ser ma
 
 Validar (refutar ou confirmar) essas hipóteses através da análise de dados e fornecer recomendações estratégicas com base nas descobertas. O objetivo principal desta análise é que a gravadora e o novo artista possam tomar decisões informadas que aumentem suas chances de alcançar o “sucesso”.
 
-# Ferramentas e Tecnologias:
+# Ferramentas e Tecnologias
 As ferramentas e tecnologias utilizadas foram:
 - Google BigQuery;
 - Linguagem Python;
 - Power BI.
 
-# Processamento e análises:
+# Processamento e Análises
 
 Toda a documentação relacionada a exploração dos dados pode ser encontrada no link abaixo:
 
 - [Processamento e análises](https://github.com/beatriz-mdc/Projeto2_Hipoteses/blob/main/processamento_e_analises.md)
 
-# Resultados:
+# Resultados
 
 Abaixo o resultado encontrado para cada hipótese:
 
@@ -62,7 +62,7 @@ Hipótese verdadeira.
 
 Hipótese falsa.
 
-# Conclusões:
+# Recomendações
 
 - Investir em uma boa curadoria de playlist para ampliar o alcance do artista;
 - Apostar em feats com artistas populares dentro das plataformas;
